@@ -305,7 +305,7 @@ bot.onText(/\/add (\d+)/, async (msg, match) => {
     }
 });
 
-// Send Approval with actual amount
+// Send Approval with actual amount up
 bot.onText(/\/sendapproval (\d+) (\S+)/, (msg, match) => {
     const chatId = msg.chat.id;
     ensureUser(chatId);
