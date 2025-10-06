@@ -33,10 +33,12 @@ function ensureUser(userId, name='Unknown') {
     } else if (name) db.users[userId].name = name;
 }
 function formatCurrency(amount) { return `₹${amount}`; }
+
+// ================== STOCK ALLOCATION FIX ==================
 function allocateStock(type, quantity) {
     const stock = db.stock[type];
-    if (!stock || stock.length < quantity) return null;
-    const allocated = stock.splice(0, quantity);
+    if (!stock || stock.length === 0) return null;
+    const allocated = stock.splice(0, Math.min(quantity, stock.length));
     saveDB();
     return allocated;
 }
@@ -139,14 +141,14 @@ bot.on('message', (msg) => {
 
         bot.sendMessage(chatId, `Select quantity`, quantityKeyboard);
         bot.once('message', (qmsg) => {
-            const qty = parseInt(qmsg.text);
             if (qmsg.text === 'BACK') return bot.sendMessage(chatId, 'Back to menu', userKeyboard);
+            const qty = parseInt(qmsg.text);
             if (isNaN(qty) || qty < 1) return bot.sendMessage(chatId, 'Invalid quantity', userKeyboard);
             if (!db.prices[type]) return bot.sendMessage(chatId, `❌ ${type.toUpperCase()} price not set`);
             const total = db.prices[type]*qty;
             if (db.users[chatId].balance < total) return bot.sendMessage(chatId, `❌ Insufficient balance. Total: ${formatCurrency(total)}`, userKeyboard);
             const allocated = allocateStock(type, qty);
-            if (!allocated) return bot.sendMessage(chatId, `❌ Insufficient stock`, userKeyboard);
+            if (!allocated || allocated.length === 0) return bot.sendMessage(chatId, `❌ Insufficient stock`, userKeyboard);
             db.users[chatId].balance -= total;
             const password = db.passwords[type] || 'N/A';
             db.purchaseHistory[chatId].push({ type, qty, allocated, password, total });
@@ -165,7 +167,7 @@ bot.on('message', (msg) => {
     }
 
     // Add Balance
-    else if (text === '➕ Add Balance') bot.sendMessage(chatId, 'Use /add <amount> (min ₹30)');
+    else if (text === '➕ Add Balance') bot.sendMessage(chatId, 'Use /add <amount> (min ₹10)');
 
     // Check Balance
     else if (text === '💰 Check Balance') bot.sendMessage(chatId, `💰 Your Balance: ${formatCurrency(db.users[chatId].balance)}`);
@@ -267,30 +269,25 @@ bot.onText(/\/removeoldig (.+)/, (msg, match) => {
 
 // ================== USER COMMANDS ==================
 
-// Add Balance - FIXED UPI, DYNAMIC AMOUNT
+// Add Balance - FIXED UPI, MINIMUM ₹10
 bot.onText(/\/add (\d+)/, async (msg, match) => {
     const chatId = msg.chat.id;
     ensureUser(chatId);
 
     const amount = parseInt(match[1]);
-    if (amount < 30) return bot.sendMessage(chatId, '❌ Minimum ₹30 required');
+    if (amount < 10) return bot.sendMessage(chatId, '❌ Minimum ₹10 required');
 
-    const upiID = db.upi.trim();
+    const upiID = FIXED_UPI;
     if (!upiID) return bot.sendMessage(chatId, '❌ UPI not set by admin');
 
     try {
         const tempMsg = await bot.sendMessage(chatId, '⏳ Generating QR...');
-
-        await new Promise(res => setTimeout(res, 1500));
-
+        await new Promise(res => setTimeout(res, 1000));
         await bot.deleteMessage(chatId, tempMsg.message_id);
 
         const upiString = `upi://pay?pa=${upiID}&pn=BotTopup&am=${amount}&cu=INR`;
 
-        // Generate QR
         const qrDataURL = await QRCode.toDataURL(upiString, { errorCorrectionLevel: 'H' });
-
-        // Convert Data URL to Buffer
         const base64Data = qrDataURL.replace(/^data:image\/png;base64,/, '');
         const qrBuffer = Buffer.from(base64Data, 'base64');
 
