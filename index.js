@@ -263,13 +263,10 @@ bot.onText(/\/removefreshig (.+)/, (msg, match) => {
 bot.onText(/\/removeoldig (.+)/, (msg, match) => {
     if (!isAdmin(msg.chat.id)) return;
     const username = match[1]; const index = db.stock['old'].indexOf(username);
-    if (index > -1) { db.stock['old'].splice(index,1); saveDB(); bot.sendMessage(msg.chat.id, `✅ Removed ${username} from OLD stock`); }
-    else bot.sendMessage(msg.chat.id, `❌ Username ${username} not in OLD stock`);
-});
-
+    if (index > -1) { db.stock['old'].splice(index,1); saveDB(); bot.sendMessage(msg.chat.id, `✅ Removed ${username} from OLD stock`);
 // ================== USER COMMANDS ==================
 
-// Add Balance - FIXED UPI, MINIMUM ₹10
+// Add Balance - FIXED UPI, DYNAMIC AMOUNT
 bot.onText(/\/add (\d+)/, async (msg, match) => {
     const chatId = msg.chat.id;
     ensureUser(chatId);
@@ -277,22 +274,27 @@ bot.onText(/\/add (\d+)/, async (msg, match) => {
     const amount = parseInt(match[1]);
     if (amount < 10) return bot.sendMessage(chatId, '❌ Minimum ₹10 required');
 
-    const upiID = FIXED_UPI;
+    const upiID = FIXED_UPI.trim();
     if (!upiID) return bot.sendMessage(chatId, '❌ UPI not set by admin');
 
     try {
         const tempMsg = await bot.sendMessage(chatId, '⏳ Generating QR...');
-        await new Promise(res => setTimeout(res, 1000));
+
+        await new Promise(res => setTimeout(res, 1500));
+
         await bot.deleteMessage(chatId, tempMsg.message_id);
 
         const upiString = `upi://pay?pa=${upiID}&pn=BotTopup&am=${amount}&cu=INR`;
 
+        // Generate QR
         const qrDataURL = await QRCode.toDataURL(upiString, { errorCorrectionLevel: 'H' });
+
+        // Convert Data URL to Buffer
         const base64Data = qrDataURL.replace(/^data:image\/png;base64,/, '');
         const qrBuffer = Buffer.from(base64Data, 'base64');
 
         await bot.sendPhoto(chatId, qrBuffer, {
-            caption: `💳 Pay ${formatCurrency(amount)} via QR\nAfter pay: /sendapproval <UTR/TXN>`
+            caption: `💳 Pay ${formatCurrency(amount)} via QR\nAfter pay: /sendapproval ${amount} <UTR/TXN>`
         });
 
     } catch (err) {
@@ -300,6 +302,7 @@ bot.onText(/\/add (\d+)/, async (msg, match) => {
         bot.sendMessage(chatId, '❌ Failed to generate QR');
     }
 });
+
 // Send Approval with actual amount
 bot.onText(/\/sendapproval (\d+) (\S+)/, (msg, match) => {
     const chatId = msg.chat.id;
