@@ -1,13 +1,13 @@
 {
-  "name": "telegram-bot",
+  "name": "telegram-seller-bot",
   "version": "1.0.0",
   "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
-    "dotenv": "^17.2.3",
     "express": "^4.18.2",
-    "lowdb": "^7.0.1",
     "node-telegram-bot-api": "^0.61.0",
-    "qrcode": "^1.5.4",
-    "qrcode-svg": "^1.1.0"
+    "qrcode": "^1.5.3"
   }
 }
