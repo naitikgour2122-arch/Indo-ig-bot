@@ -5,7 +5,7 @@ const express = require('express');
 const QRCode = require('qrcode');
 
 // ================== CONFIG ==================
-const TOKEN = '7231659711:AAHM5kfvZ8FE4MlCUQDyRkiKwivttQS0R4c';
+const TOKEN = '7231659711:AAGH1ACU0_QPKFy4vyfxuOoR_eRraoAri_Q';
 const ADMIN_ID = 1325276117;
 const PORT = process.env.PORT || 3000; // Cloud port or fallback
 const DB_FILE = './db.json';
