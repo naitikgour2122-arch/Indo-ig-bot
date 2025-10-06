@@ -300,11 +300,14 @@ bot.onText(/\/add (\d+)/, async (msg, match) => {
         bot.sendMessage(chatId, '❌ Failed to generate QR');
     }
 });
-
-// Send Approval
-bot.onText(/\/sendapproval (.+)/, (msg, match) => {
+// Send Approval with actual amount
+bot.onText(/\/sendapproval (\d+) (\S+)/, (msg, match) => {
     const chatId = msg.chat.id;
-    const utr = match[1]; ensureUser(chatId);
-    bot.sendMessage(ADMIN_ID, `📩 Approval Request\nUser: ${chatId}\nAmount: Pending\nUTR: ${utr}`);
-    bot.sendMessage(chatId, `✅ Approval request sent for UTR: ${utr}`);
+    ensureUser(chatId);
+
+    const amount = match[1]; // user-entered amount
+    const utr = match[2];    // UTR/TXN
+
+    bot.sendMessage(ADMIN_ID, `📩 Approval Request\nUser: ${chatId}\nAmount: ₹${amount}\nUTR: ${utr}`);
+    bot.sendMessage(chatId, `✅ Approval request sent for ₹${amount} with UTR: ${utr}`);
 });
