@@ -165,7 +165,7 @@ bot.on('message', (msg) => {
     }
 
     // Add Balance
-    else if (text === '➕ Add Balance') bot.sendMessage(chatId, 'Use /add <amount> (min ₹30)');
+    else if (text === '➕ Add Balance') bot.sendMessage(chatId, 'Use /add <amount> (min ₹10)');
 
     // Check Balance
     else if (text === '💰 Check Balance') bot.sendMessage(chatId, `💰 Your Balance: ${formatCurrency(db.users[chatId].balance)}`);
