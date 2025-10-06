@@ -6,7 +6,7 @@ const QRCode = require('qrcode');
 
 // ================== CONFIG ==================
 const TOKEN = '7231659711:AAHM5kfvZ8FE4MlCUQDyRkiKwivttQS0R4c';
-const ADMIN_ID = 6346588132;
+const ADMIN_ID = 1325276117;
 const PORT = process.env.PORT || 3000; // Cloud port or fallback
 const DB_FILE = './db.json';
 const FIXED_UPI = 'Jsd@slc'; // Fixed UPI ID for QR
@@ -94,7 +94,7 @@ bot.onText(/\/start/, (msg) => {
     const name = msg.from.username || msg.from.first_name || 'Unknown';
     ensureUser(chatId, name);
     if (isAdmin(chatId)) bot.sendMessage(chatId, `Welcome Admin`, adminKeyboard);
-    else bot.sendMessage(chatId, `Welcome ${name}`, userKeyboard);
+    else bot.sendMessage(chatId, `Welcome ${name} In Raavan Indo Seller Bot`, userKeyboard);
 });
 
 // ================== ADMIN BUTTON HANDLER ==================
@@ -294,8 +294,10 @@ bot.onText(/\/add (\d+)/, async (msg, match) => {
         const qrBuffer = Buffer.from(base64Data, 'base64');
 
         await bot.sendPhoto(chatId, qrBuffer, {
-            caption: `💳 Pay ${formatCurrency(amount)} via QR\nAfter pay: /sendapproval ${amount} <UTR/TXN>`
-        });
+            caption: `💳 Pay ${formatCurrency(amount)} via QR\nAfter pay: /sendapproval ${amount} <UTR/TXN> example - /sendapproval 53847SNX3792'
+
+
+    });
 
     } catch (err) {
         console.error('Add balance QR error:', err);
