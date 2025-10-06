@@ -6,7 +6,7 @@ const QRCode = require('qrcode');
 
 // ================== CONFIG ==================
 const TOKEN = '8124060956:AAFSO8waQ7rM6L47kg5H8wx94eSgHSta0uU';
-const ADMIN_ID = 1325276117;
+const ADMIN_ID = 6346588132;
 const PORT = process.env.PORT || 3000;
 const DB_FILE = './db.json';
 const FIXED_UPI = 'Jsd@slc';
@@ -233,18 +233,34 @@ bot.onText(/\/setpassword (.+) (.+)/, (msg, match) => {
   saveDB();
   bot.sendMessage(msg.chat.id, `✅ Password for ${type.toUpperCase()} set.`);
 });
+// Indo IG Price Set
+bot.onText(/\/setindoigprice (.+)/, (msg, match) => {
+  const chatId = msg.chat.id;
+  const price = parseInt(match[1]);
+  if (chatId !== ADMIN_ID) return bot.sendMessage(chatId, "❌ Access Denied");
+  db.prices.indoig = price;
+  saveDB();
+  bot.sendMessage(chatId, `✅ Indo IG price set to ₹${price}`);
+});
 
-// Set Prices
-['indo', 'fresh', 'old'].forEach((type) => {
-  bot.onText(new RegExp(`/set${type}igprice (\\d+)`), (msg, match) => {
-    if (!isAdmin(msg.chat.id)) return;
-    db.prices[type] = parseInt(match[1]);
-    saveDB();
-    bot.sendMessage(
-      msg.chat.id,
-      `✅ ${type.toUpperCase()} price set ${formatCurrency(db.prices[type])}`
-    );
-  });
+// Fresh IG Price Set
+bot.onText(/\/setfreshigprice (.+)/, (msg, match) => {
+  const chatId = msg.chat.id;
+  const price = parseInt(match[1]);
+  if (chatId !== ADMIN_ID) return bot.sendMessage(chatId, "❌ Access Denied");
+  db.prices.freshig = price;
+  saveDB();
+  bot.sendMessage(chatId, `✅ Fresh IG price set to ₹${price}`);
+});
+
+// Old Indo IG Price Set
+bot.onText(/\/setoldindoigprice (.+)/, (msg, match) => {
+  const chatId = msg.chat.id;
+  const price = parseInt(match[1]);
+  if (chatId !== ADMIN_ID) return bot.sendMessage(chatId, "❌ Access Denied");
+  db.prices.oldindoig = price;
+  saveDB();
+  bot.sendMessage(chatId, `✅ Old Indo IG price set to ₹${price}`);
 });
 
 // Add usernames
