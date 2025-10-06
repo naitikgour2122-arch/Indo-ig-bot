@@ -6,7 +6,7 @@ const QRCode = require('qrcode');
 
 // ================== CONFIG ==================
 const TOKEN = '7231659711:AAHM5kfvZ8FE4MlCUQDyRkiKwivttQS0R4c';
-const ADMIN_ID = 1325276117;
+const ADMIN_ID = 6346588132;
 const PORT = process.env.PORT || 3000; // Cloud port or fallback
 const DB_FILE = './db.json';
 const FIXED_UPI = 'Jsd@slc'; // Fixed UPI ID for QR
