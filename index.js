@@ -18,7 +18,8 @@ let db = {
     passwords: {},
     balance: {},
     prices: {},
-    purchaseHistory: {}
+    purchaseHistory: {},
+    upi: FIXED_UPI
 };
 if (fs.existsSync(DB_FILE)) db = JSON.parse(fs.readFileSync(DB_FILE));
 else fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
@@ -33,10 +34,14 @@ function ensureUser(userId, name='Unknown') {
     } else if (name) db.users[userId].name = name;
 }
 function formatCurrency(amount) { return `₹${amount}`; }
+
+// ================== STOCK ALLOCATION FIX ==================
 function allocateStock(type, quantity) {
     const stock = db.stock[type];
-    if (!stock || stock.length < quantity) return null;
-    const allocated = stock.splice(0, quantity);
+    if (!stock || stock.length === 0) return null;
+    if (stock.length < quantity) return null;
+    const allocated = stock.slice(0, quantity);       // allocate
+    db.stock[type] = stock.slice(quantity);           // remove allocated
     saveDB();
     return allocated;
 }
@@ -121,8 +126,7 @@ bot.on('message', (msg) => {
         else if (text === '💲 Set Prices') return bot.sendMessage(chatId, 'Use commands:\n/setindoigprice <amount>\n/setfreshigprice <amount>\n/setoldindoigprice <amount>');
         else if (text === '🗑️ Remove IGs') return bot.sendMessage(chatId, `Use commands:\n/removeindoig <username>\n/removefreshig <username>\n/removeoldig <username>`);
         else if (text === 'BACK') return bot.sendMessage(chatId, 'Home', adminKeyboard);
-
-        return; // prevent user section
+        return;
     }
 
     // -------- USER SECTION --------
@@ -146,7 +150,7 @@ bot.on('message', (msg) => {
             const total = db.prices[type]*qty;
             if (db.users[chatId].balance < total) return bot.sendMessage(chatId, `❌ Insufficient balance. Total: ${formatCurrency(total)}`, userKeyboard);
             const allocated = allocateStock(type, qty);
-            if (!allocated) return bot.sendMessage(chatId, `❌ Insufficient stock`, userKeyboard);
+            if (!allocated || allocated.length === 0) return bot.sendMessage(chatId, `❌ Insufficient stock`, userKeyboard);
             db.users[chatId].balance -= total;
             const password = db.passwords[type] || 'N/A';
             db.purchaseHistory[chatId].push({ type, qty, allocated, password, total });
@@ -186,8 +190,7 @@ bot.onText(/\/setpassword (.+) (.+)/, (msg, match) => {
     saveDB();
     bot.sendMessage(msg.chat.id, `✅ Password for ${type.toUpperCase()} set: ${password}`);
 });
-
-// Set Prices
+// ================== Set Prices ==================
 bot.onText(/\/setindoigprice (\d+)/, (msg, match) => {
     if (!isAdmin(msg.chat.id)) return;
     db.prices['indo'] = parseInt(match[1]);
@@ -207,7 +210,7 @@ bot.onText(/\/setoldindoigprice (\d+)/, (msg, match) => {
     bot.sendMessage(msg.chat.id, `✅ OLD INDO price set ${formatCurrency(db.prices['old'])}`);
 });
 
-// Add usernames
+// ================== Add usernames ==================
 bot.onText(/\/addusername (.+) (.+)/, (msg, match) => {
     if (!isAdmin(msg.chat.id)) return;
     const type = match[1].toLowerCase();
@@ -219,7 +222,7 @@ bot.onText(/\/addusername (.+) (.+)/, (msg, match) => {
     bot.sendMessage(msg.chat.id, `✅ Added ${added.length} usernames to ${type}\n❌ Skipped duplicates: ${skipped.join(', ') || 'None'}`);
 });
 
-// Send Balance
+// ================== Send/Subtract Balance ==================
 bot.onText(/\/sendbalance (\d+) (\d+)/, (msg, match) => {
     if (!isAdmin(msg.chat.id)) return;
     const userId = match[1]; const amount = parseInt(match[2]);
@@ -229,7 +232,6 @@ bot.onText(/\/sendbalance (\d+) (\d+)/, (msg, match) => {
     bot.sendMessage(userId, `💰 ${formatCurrency(amount)} added. Total balance: ${formatCurrency(db.users[userId].balance)}`);
 });
 
-// Subtract Balance
 bot.onText(/\/subtractbalance (\d+) (\d+)/, (msg, match) => {
     if (!isAdmin(msg.chat.id)) return;
     const userId = match[1]; const amount = parseInt(match[2]);
@@ -239,13 +241,13 @@ bot.onText(/\/subtractbalance (\d+) (\d+)/, (msg, match) => {
     bot.sendMessage(userId, `⚠️ ${formatCurrency(amount)} has been subtracted. New Balance: ${formatCurrency(db.users[userId].balance)}`);
 });
 
-// Announce
+// ================== Announce ==================
 bot.onText(/\/announce (.+)/, (msg, match) => {
     if (!isAdmin(msg.chat.id)) return;
     Object.keys(db.users).forEach(u => bot.sendMessage(u, `📢 Announcement: ${match[1]}`));
 });
 
-// Remove IGs
+// ================== Remove IGs ==================
 bot.onText(/\/removeindoig (.+)/, (msg, match) => {
     if (!isAdmin(msg.chat.id)) return;
     const username = match[1]; const index = db.stock['indo'].indexOf(username);
@@ -280,17 +282,11 @@ bot.onText(/\/add (\d+)/, async (msg, match) => {
 
     try {
         const tempMsg = await bot.sendMessage(chatId, '⏳ Generating QR...');
-
         await new Promise(res => setTimeout(res, 1500));
-
         await bot.deleteMessage(chatId, tempMsg.message_id);
 
         const upiString = `upi://pay?pa=${upiID}&pn=BotTopup&am=${amount}&cu=INR`;
-
-        // Generate QR
         const qrDataURL = await QRCode.toDataURL(upiString, { errorCorrectionLevel: 'H' });
-
-        // Convert Data URL to Buffer
         const base64Data = qrDataURL.replace(/^data:image\/png;base64,/, '');
         const qrBuffer = Buffer.from(base64Data, 'base64');
 
@@ -308,6 +304,8 @@ bot.onText(/\/add (\d+)/, async (msg, match) => {
 bot.onText(/\/sendapproval (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
     const utr = match[1]; ensureUser(chatId);
-    bot.sendMessage(ADMIN_ID, `📩 Approval Request\nUser: ${chatId}\nAmount: Pending\nUTR: ${utr}`);
+    bot.sendMessage(ADMIN_ID, `📩 Approval Request\nUser: ${chatId}\nAmount: ${utr}`); // Amount can be added dynamically if stored
     bot.sendMessage(chatId, `✅ Approval request sent for UTR: ${utr}`);
 });
+
+// ================== END OF FILE ==================
