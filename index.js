@@ -52,8 +52,8 @@ app.get('/', (req, res) => res.send('Bot is alive'));
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 // ================== KEYBOARDS ==================
-const adminKeyboard = { reply_markup:{ keyboard:[['➕ Add INDO','➕ Add FRESH INDO','➕ Add OLD INDO'],['💸 Send Balance','💰 Subtract Balance'],['👥 Check Users','📢 Send Announcement'],['💲 Set Prices'],['🗑️ Remove IGs']], resize_keyboard:true } };
-const userKeyboard = { reply_markup:{ keyboard:[['💸 Buy INDO','💸 Buy FRESH IG','💸 Buy OLD INDO IG'],['📦 Available Stock','➕ Add Balance'],['💰 Check Balance','👑 Contact Owner']], resize_keyboard:true } };
+const adminKeyboard = { reply_markup:{ keyboard:[['➕ Add OLD INDO','➕ Add FRESH INDO','➕ Add INDO'],['💸 Send Balance','💰 Subtract Balance'],['👥 Check Users','📢 Send Announcement'],['💲 Set Prices'],['🗑️ Remove IGs']], resize_keyboard:true } };
+const userKeyboard = { reply_markup:{ keyboard:[['💸 Buy OLD INDO','💸 Buy FRESH IG','💸 Buy INDO IG'],['📦 Available Stock','➕ Add Balance'],['💰 Check Balance','👑 Contact Owner']], resize_keyboard:true } };
 const quantityKeyboard = { reply_markup:{ keyboard:[['1','2','3'],['4','5','6'],['7','8','9'],['10','BACK']], resize_keyboard:true } };
 
 // ================== /start ==================
@@ -70,9 +70,9 @@ bot.on('message', (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
   if (isAdmin(chatId)) {
-    if (text==='➕ Add INDO') return bot.sendMessage(chatId,'Use /addusername indo <user1,user2,...>');
+    if (text==='➕ Add OLD INDO') return bot.sendMessage(chatId,'Use /addusername old <user1,user2,...>');
     else if (text==='➕ Add FRESH INDO') return bot.sendMessage(chatId,'Use /addusername fresh <user1,user2,...>');
-    else if (text==='➕ Add OLD INDO') return bot.sendMessage(chatId,'Use /addusername old <user1,user2,...>');
+    else if (text==='➕ Add INDO') return bot.sendMessage(chatId,'Use /addusername indo <user1,user2,...>');
     else if (text==='💸 Send Balance') return bot.sendMessage(chatId,'Use /sendbalance <user_id> <amount>');
     else if (text==='💰 Subtract Balance') return bot.sendMessage(chatId,'Use /subtractbalance <user_id> <amount>');
     else if (text==='👥 Check Users') {
@@ -116,7 +116,7 @@ bot.on('message', (msg) => {
     });
   }
 
-  else if(text==='📦 Available Stock') bot.sendMessage(chatId,`📦 AVAILABLE IGS\nINDO IG - ${db.stock.indo.length}\nFRESH IG - ${db.stock.fresh.length}\nOLD IG - ${db.stock.old.length}`);
+  else if(text==='📦 Available Stock') bot.sendMessage(chatId,`📦 AVAILABLE IGS\nOLD IG - ${db.stock.indo.length}\nFRESH IG - ${db.stock.fresh.length}\nOLD IG - ${db.stock.old.length}`);
   else if(text==='➕ Add Balance') bot.sendMessage(chatId,'Use /add <amount> (min ₹10)');
   else if(text==='💰 Check Balance') bot.sendMessage(chatId,`💰 Your Balance: ${formatCurrency(db.users[chatId].balance||0)}`);
   else if(text==='👑 Contact Owner') bot.sendMessage(chatId,'📞 Owner - @Raavana_hu');
@@ -131,16 +131,16 @@ bot.onText(/\/setpassword (.+) (.+)/, (msg, match)=> {
   saveDB();
   bot.sendMessage(msg.chat.id,`✅ Password for ${type.toUpperCase()} set: ${password}`);
 });
-bot.onText(/\/setindoigprice (\d+)/,(msg,match)=> { if(!isAdmin(msg.chat.id)) return; db.prices['indo']=parseInt(match[1]); saveDB(); bot.sendMessage(msg.chat.id,`✅ INDO price set ${formatCurrency(db.prices['indo'])}`); });
+bot.onText(/\/setoldindoigprice (\d+)/,(msg,match)=> { if(!isAdmin(msg.chat.id)) return; db.prices['indo']=parseInt(match[1]); saveDB(); bot.sendMessage(msg.chat.id,`✅ OLD INDO price set ${formatCurrency(db.prices['indo'])}`); });
 bot.onText(/\/setfreshigprice (\d+)/,(msg,match)=> { if(!isAdmin(msg.chat.id)) return; db.prices['fresh']=parseInt(match[1]); saveDB(); bot.sendMessage(msg.chat.id,`✅ FRESH price set ${formatCurrency(db.prices['fresh'])}`); });
-bot.onText(/\/setoldindoigprice (\d+)/,(msg,match)=> { if(!isAdmin(msg.chat.id)) return; db.prices['old']=parseInt(match[1]); saveDB(); bot.sendMessage(msg.chat.id,`✅ OLD INDO price set ${formatCurrency(db.prices['old'])}`); });
-bot.onText(/\/addusername (.+) (.+)/,(msg,match)=> { if(!isAdmin(msg.chat.id)) return; const type=match[1].toLowerCase(); const usernames=match[2].split(','); if(!['indo','fresh','old'].includes(type)) return bot.sendMessage(msg.chat.id,'Invalid type'); const added=[],skipped=[]; usernames.forEach(u=> db.stock[type].includes(u)?skipped.push(u):added.push(db.stock[type].push(u)&&u)); saveDB(); bot.sendMessage(msg.chat.id,`✅ Added ${added.length} usernames to ${type}\n❌ Skipped duplicates: ${skipped.join(', ')||'None'}`); });
+bot.onText(/\/setindoigprice (\d+)/,(msg,match)=> { if(!isAdmin(msg.chat.id)) return; db.prices['old']=parseInt(match[1]); saveDB(); bot.sendMessage(msg.chat.id,`✅ INDO price set ${formatCurrency(db.prices['old'])}`); });
+bot.onText(/\/addusername (.+) (.+)/,(msg,match)=> { if(!isAdmin(msg.chat.id)) return; const type=match[1].toLowerCase(); const usernames=match[2].split(','); if(!['old','fresh','indo'].includes(type)) return bot.sendMessage(msg.chat.id,'Invalid type'); const added=[],skipped=[]; usernames.forEach(u=> db.stock[type].includes(u)?skipped.push(u):added.push(db.stock[type].push(u)&&u)); saveDB(); bot.sendMessage(msg.chat.id,`✅ Added ${added.length} usernames to ${type}\n❌ Skipped duplicates: ${skipped.join(', ')||'None'}`); });
 bot.onText(/\/sendbalance (\d+) (\d+)/,(msg,match)=> { if(!isAdmin(msg.chat.id)) return; const userId=match[1]; const amount=parseInt(match[2]); ensureUser(userId); db.users[userId].balance+=amount; saveDB(); bot.sendMessage(msg.chat.id,`✅ ${formatCurrency(amount)} added to User ${userId}`); bot.sendMessage(userId,`💰 ${formatCurrency(amount)} added. Total balance: ${formatCurrency(db.users[userId].balance)}`); });
 bot.onText(/\/subtractbalance (\d+) (\d+)/,(msg,match)=> { if(!isAdmin(msg.chat.id)) return; const userId=match[1]; const amount=parseInt(match[2]); ensureUser(userId); db.users[userId].balance=Math.max(0,db.users[userId].balance-amount); saveDB(); bot.sendMessage(msg.chat.id,`✅ ${formatCurrency(amount)} subtracted from ${userId}`); bot.sendMessage(userId,`⚠️ ${formatCurrency(amount)} has been subtracted. New Balance: ${formatCurrency(db.users[userId].balance)}`); });
 bot.onText(/\/announce (.+)/,(msg,match)=> { if(!isAdmin(msg.chat.id)) return; Object.keys(db.users).forEach(u=> bot.sendMessage(u,`📢 Announcement: ${match[1]}`)); });
-bot.onText(/\/removeindoig (.+)/,(msg,match)=> { if(!isAdmin(msg.chat.id)) return; const username=match[1]; const index=db.stock['indo'].indexOf(username); if(index>-1){ db.stock['indo'].splice(index,1); saveDB(); bot.sendMessage(msg.chat.id,`✅ Removed ${username} from INDO stock`);} else bot.sendMessage(msg.chat.id,`❌ Username ${username} not in INDO stock`); });
+bot.onText(/\/removeoldig (.+)/,(msg,match)=> { if(!isAdmin(msg.chat.id)) return; const username=match[1]; const index=db.stock['indo'].indexOf(username); if(index>-1){ db.stock['indo'].splice(index,1); saveDB(); bot.sendMessage(msg.chat.id,`✅ Removed ${username} from INDO stock`);} else bot.sendMessage(msg.chat.id,`❌ Username ${username} not in INDO stock`); });
 bot.onText(/\/removefreshig (.+)/,(msg,match)=> { if(!isAdmin(msg.chat.id)) return; const username=match[1]; const index=db.stock['fresh'].indexOf(username); if(index>-1){ db.stock['fresh'].splice(index,1); saveDB(); bot.sendMessage(msg.chat.id,`✅ Removed ${username} from FRESH stock`);} else bot.sendMessage(msg.chat.id,`❌ Username ${username} not in FRESH stock`); });
-bot.onText(/\/removeoldig (.+)/,(msg,match)=> { if(!isAdmin(msg.chat.id)) return; const username=match[1]; const index=db.stock['old'].indexOf(username); if(index>-1){ db.stock['old'].splice(index,1); saveDB(); bot.sendMessage(msg.chat.id,`✅ Removed ${username} from OLD stock`);} else bot.sendMessage(msg.chat.id,`❌ Username ${username} not in OLD stock`); });
+bot.onText(/\/removeindoig (.+)/,(msg,match)=> { if(!isAdmin(msg.chat.id)) return; const username=match[1]; const index=db.stock['old'].indexOf(username); if(index>-1){ db.stock['old'].splice(index,1); saveDB(); bot.sendMessage(msg.chat.id,`✅ Removed ${username} from OLD stock`);} else bot.sendMessage(msg.chat.id,`❌ Username ${username} not in OLD stock`); });
 
 // ================== USER COMMANDS ==================
 bot.onText(/\/add (\d+)/, async (msg,match)=> {
