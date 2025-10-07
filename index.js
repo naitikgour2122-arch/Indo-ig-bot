@@ -6,10 +6,10 @@ const QRCode = require('qrcode');
 
 // ================== CONFIG ==================
 const TOKEN = '8124060956:AAFSO8waQ7rM6L47kg5H8wx94eSgHSta0uU';
-const ADMIN_ID = 1325276117;
-const PORT = process.env.PORT || 3000; // Cloud port or fallback
+const ADMIN_ID = 6346588132;
+const PORT = process.env.PORT || 3000;
 const DB_FILE = './db.json';
-const FIXED_UPI = 'Jsd@slc'; // Fixed UPI ID for QR
+const FIXED_UPI = 'Jsd@slc';
 
 // ================== LOAD OR CREATE DB ==================
 let db = {
@@ -34,14 +34,10 @@ function ensureUser(userId, name='Unknown') {
     } else if (name) db.users[userId].name = name;
 }
 function formatCurrency(amount) { return `₹${amount}`; }
-
-// ================== STOCK ALLOCATION FIX ==================
 function allocateStock(type, quantity) {
     const stock = db.stock[type];
-    if (!stock || stock.length === 0) return null;
-    if (stock.length < quantity) return null;
-    const allocated = stock.slice(0, quantity);       // allocate
-    db.stock[type] = stock.slice(quantity);           // remove allocated
+    if (!stock || stock.length < quantity) return null;
+    const allocated = stock.splice(0, quantity);
     saveDB();
     return allocated;
 }
@@ -190,7 +186,8 @@ bot.onText(/\/setpassword (.+) (.+)/, (msg, match) => {
     saveDB();
     bot.sendMessage(msg.chat.id, `✅ Password for ${type.toUpperCase()} set: ${password}`);
 });
-// ================== Set Prices ==================
+
+// Set Prices
 bot.onText(/\/setindoigprice (\d+)/, (msg, match) => {
     if (!isAdmin(msg.chat.id)) return;
     db.prices['indo'] = parseInt(match[1]);
@@ -210,7 +207,7 @@ bot.onText(/\/setoldindoigprice (\d+)/, (msg, match) => {
     bot.sendMessage(msg.chat.id, `✅ OLD INDO price set ${formatCurrency(db.prices['old'])}`);
 });
 
-// ================== Add usernames ==================
+// Add usernames
 bot.onText(/\/addusername (.+) (.+)/, (msg, match) => {
     if (!isAdmin(msg.chat.id)) return;
     const type = match[1].toLowerCase();
@@ -221,91 +218,98 @@ bot.onText(/\/addusername (.+) (.+)/, (msg, match) => {
     saveDB();
     bot.sendMessage(msg.chat.id, `✅ Added ${added.length} usernames to ${type}\n❌ Skipped duplicates: ${skipped.join(', ') || 'None'}`);
 });
-
-// ================== Send/Subtract Balance ==================
+// Send Balance
 bot.onText(/\/sendbalance (\d+) (\d+)/, (msg, match) => {
     if (!isAdmin(msg.chat.id)) return;
-    const userId = match[1]; const amount = parseInt(match[2]);
+    const userId = match[1];
+    const amount = parseInt(match[2]);
     ensureUser(userId);
-    db.users[userId].balance += amount; saveDB();
+    db.users[userId].balance = (db.users[userId].balance || 0) + amount;
+    saveDB();
     bot.sendMessage(msg.chat.id, `✅ ${formatCurrency(amount)} added to User ${userId}`);
     bot.sendMessage(userId, `💰 ${formatCurrency(amount)} added. Total balance: ${formatCurrency(db.users[userId].balance)}`);
 });
 
+// Subtract Balance
 bot.onText(/\/subtractbalance (\d+) (\d+)/, (msg, match) => {
     if (!isAdmin(msg.chat.id)) return;
-    const userId = match[1]; const amount = parseInt(match[2]);
+    const userId = match[1];
+    const amount = parseInt(match[2]);
     ensureUser(userId);
-    db.users[userId].balance = Math.max(0, db.users[userId].balance - amount); saveDB();
-    bot.sendMessage(msg.chat.id, `✅ ${formatCurrency(amount)} subtracted from ${userId}`);
+    db.users[userId].balance = Math.max(0, (db.users[userId].balance || 0) - amount);
+    saveDB();
+    bot.sendMessage(msg.chat.id, `✅ ${formatCurrency(amount)} subtracted from User ${userId}`);
     bot.sendMessage(userId, `⚠️ ${formatCurrency(amount)} has been subtracted. New Balance: ${formatCurrency(db.users[userId].balance)}`);
 });
 
-// ================== Announce ==================
+// Announce
 bot.onText(/\/announce (.+)/, (msg, match) => {
     if (!isAdmin(msg.chat.id)) return;
     Object.keys(db.users).forEach(u => bot.sendMessage(u, `📢 Announcement: ${match[1]}`));
 });
 
-// ================== Remove IGs ==================
+// Remove IGs
 bot.onText(/\/removeindoig (.+)/, (msg, match) => {
     if (!isAdmin(msg.chat.id)) return;
-    const username = match[1]; const index = db.stock['indo'].indexOf(username);
-    if (index > -1) { db.stock['indo'].splice(index,1); saveDB(); bot.sendMessage(msg.chat.id, `✅ Removed ${username} from INDO stock`); }
-    else bot.sendMessage(msg.chat.id, `❌ Username ${username} not in INDO stock`);
+    const username = match[1];
+    const index = db.stock['indo'].indexOf(username);
+    if (index > -1) {
+        db.stock['indo'].splice(index, 1);
+        saveDB();
+        bot.sendMessage(msg.chat.id, `✅ Removed ${username} from INDO stock`);
+    } else bot.sendMessage(msg.chat.id, `❌ Username ${username} not in INDO stock`);
 });
 bot.onText(/\/removefreshig (.+)/, (msg, match) => {
     if (!isAdmin(msg.chat.id)) return;
-    const username = match[1]; const index = db.stock['fresh'].indexOf(username);
-    if (index > -1) { db.stock['fresh'].splice(index,1); saveDB(); bot.sendMessage(msg.chat.id, `✅ Removed ${username} from FRESH stock`); }
-    else bot.sendMessage(msg.chat.id, `❌ Username ${username} not in FRESH stock`);
+    const username = match[1];
+    const index = db.stock['fresh'].indexOf(username);
+    if (index > -1) {
+        db.stock['fresh'].splice(index, 1);
+        saveDB();
+        bot.sendMessage(msg.chat.id, `✅ Removed ${username} from FRESH stock`);
+    } else bot.sendMessage(msg.chat.id, `❌ Username ${username} not in FRESH stock`);
 });
 bot.onText(/\/removeoldig (.+)/, (msg, match) => {
     if (!isAdmin(msg.chat.id)) return;
-    const username = match[1]; const index = db.stock['old'].indexOf(username);
-    if (index > -1) { db.stock['old'].splice(index,1); saveDB(); bot.sendMessage(msg.chat.id, `✅ Removed ${username} from OLD stock`); }
-    else bot.sendMessage(msg.chat.id, `❌ Username ${username} not in OLD stock`);
+    const username = match[1];
+    const index = db.stock['old'].indexOf(username);
+    if (index > -1) {
+        db.stock['old'].splice(index, 1);
+        saveDB();
+        bot.sendMessage(msg.chat.id, `✅ Removed ${username} from OLD stock`);
+    } else bot.sendMessage(msg.chat.id, `❌ Username ${username} not in OLD stock`);
 });
 
 // ================== USER COMMANDS ==================
 
-// Add Balance - FIXED UPI, DYNAMIC AMOUNT
+// Add Balance - Minimum ₹10 & Fixed UPI
 bot.onText(/\/add (\d+)/, async (msg, match) => {
     const chatId = msg.chat.id;
     ensureUser(chatId);
-
     const amount = parseInt(match[1]);
     if (amount < 10) return bot.sendMessage(chatId, '❌ Minimum ₹10 required');
 
-    const upiID = db.upi.trim();
-    if (!upiID) return bot.sendMessage(chatId, '❌ UPI not set by admin');
+    const upiID = db.upi.trim() || FIXED_UPI;
+    const tempMsg = await bot.sendMessage(chatId, '⏳ Generating QR...');
+    await new Promise(res => setTimeout(res, 1000));
+    await bot.deleteMessage(chatId, tempMsg.message_id);
 
-    try {
-        const tempMsg = await bot.sendMessage(chatId, '⏳ Generating QR...');
-        await new Promise(res => setTimeout(res, 1500));
-        await bot.deleteMessage(chatId, tempMsg.message_id);
+    const upiString = `upi://pay?pa=${upiID}&pn=BotTopup&am=${amount}&cu=INR`;
+    const qrDataURL = await QRCode.toDataURL(upiString, { errorCorrectionLevel: 'H' });
+    const base64Data = qrDataURL.replace(/^data:image\/png;base64,/, '');
+    const qrBuffer = Buffer.from(base64Data, 'base64');
 
-        const upiString = `upi://pay?pa=${upiID}&pn=BotTopup&am=${amount}&cu=INR`;
-        const qrDataURL = await QRCode.toDataURL(upiString, { errorCorrectionLevel: 'H' });
-        const base64Data = qrDataURL.replace(/^data:image\/png;base64,/, '');
-        const qrBuffer = Buffer.from(base64Data, 'base64');
-
-        await bot.sendPhoto(chatId, qrBuffer, {
-            caption: `💳 Pay ${formatCurrency(amount)} via QR\nAfter pay: /sendapproval <UTR/TXN>`
-        });
-
-    } catch (err) {
-        console.error('Add balance QR error:', err);
-        bot.sendMessage(chatId, '❌ Failed to generate QR');
-    }
+    await bot.sendPhoto(chatId, qrBuffer, { caption: `💳 Pay ${formatCurrency(amount)} via QR\nAfter pay: /sendapproval <UTR/TXN>` });
 });
 
-// Send Approval
+// Send Approval to Admin
 bot.onText(/\/sendapproval (.+)/, (msg, match) => {
     const chatId = msg.chat.id;
-    const utr = match[1]; ensureUser(chatId);
-    bot.sendMessage(ADMIN_ID, `📩 Approval Request\nUser: ${chatId}\nAmount: ${utr}`); // Amount can be added dynamically if stored
+    const utr = match[1];
+    ensureUser(chatId);
+    bot.sendMessage(ADMIN_ID, `📩 Approval Request\nUser: ${chatId}\nAmount: Pending\nUTR: ${utr}`);
     bot.sendMessage(chatId, `✅ Approval request sent for UTR: ${utr}`);
 });
 
 // ================== END OF FILE ==================
+console.log('✅ Bot is running...');
