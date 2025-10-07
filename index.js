@@ -116,7 +116,7 @@ bot.on('message', (msg) => {
     });
   }
 
-  else if(text==='📦 Available Stock') bot.sendMessage(chatId,`📦 AVAILABLE IGS\nOLD IG - ${db.stock.indo.length}\nFRESH IG - ${db.stock.fresh.length}\nOLD IG - ${db.stock.old.length}`);
+  else if(text==='📦 Available Stock') bot.sendMessage(chatId,`📦 AVAILABLE IGS\nOLD IG - ${db.stock.indo.length}\nFRESH IG - ${db.stock.fresh.length}\nINDO IG - ${db.stock.old.length}`);
   else if(text==='➕ Add Balance') bot.sendMessage(chatId,'Use /add <amount> (min ₹10)');
   else if(text==='💰 Check Balance') bot.sendMessage(chatId,`💰 Your Balance: ${formatCurrency(db.users[chatId].balance||0)}`);
   else if(text==='👑 Contact Owner') bot.sendMessage(chatId,'📞 Owner - @Raavana_hu');
