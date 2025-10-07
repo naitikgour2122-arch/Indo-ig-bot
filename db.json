@@ -1,6 +1,10 @@
 {
   "users": {},
-  "stock": { "indo": [], "fresh": [], "old": [] },
+  "stock": {
+    "indo": [],
+    "fresh": [],
+    "old": []
+  },
   "passwords": {},
   "balance": {},
   "prices": {},

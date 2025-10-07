@@ -1,13 +1,18 @@
 {
-  "name": "telegram-seller-bot",
+  "name": "telegram-ig-bot",
   "version": "1.0.0",
+  "description": "Telegram IG Seller Bot",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
     "express": "^4.18.2",
+    "fs": "0.0.1-security",
     "node-telegram-bot-api": "^0.61.0",
-    "qrcode": "^1.5.3"
+    "qrcode": "^1.5.1"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
