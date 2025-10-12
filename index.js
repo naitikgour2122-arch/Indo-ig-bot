@@ -5,8 +5,8 @@ const QRCode = require('qrcode');
 const admin = require('firebase-admin');
 
 // ================== CONFIG ==================
-const TOKEN = '8124060956:AAFSO8waQ7rM6L47kg5H8wx94eSgHSta0uU';
-const ADMIN_ID = 1325276117;
+const TOKEN = '8424105589:AAHcUbwHGrxGy5TUcBZcEYx0Jo6hyRPTLkg';
+const ADMIN_ID = 6346588132;
 const PORT = process.env.PORT || 3000;
 
 // ================== FIREBASE SETUP ==================
