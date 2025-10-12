@@ -1,11 +1,12 @@
-const express = require('express');
+// keep_alive.js
+const express = require("express");
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-  res.send('Bot is alive');
+app.get("/", (req, res) => {
+  res.send("✅ Indo Bot Alive — Server Working Fine!");
 });
 
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Keep alive server running on port ${PORT}`);
+  console.log(`✅ Keep-alive server running on port ${PORT}`);
 });
