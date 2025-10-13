@@ -7,7 +7,7 @@ const admin = require('firebase-admin');
 const serviceAccount = require('./raavanakey.json'); // Firebase service account
 
 // ================== CONFIG ==================
-const TOKEN = '7231659711:AAHM5kfvZ8FE4MlCUQDyRkiKwivttQS0R4c';
+const TOKEN = '8124060956:AAFSO8waQ7rM6L47kg5H8wx94eSgHSta0uU';
 const ADMIN_ID = 1325276117;
 const PORT = process.env.PORT || 3000;
 const FIXED_UPI = 'Jsd@slc'; // Fixed UPI ID for QR
