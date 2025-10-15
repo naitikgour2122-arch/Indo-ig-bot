@@ -1,43 +1,19 @@
 {
   "users": {
-    "8099711057": {
-      "balance": 15,
-      "username": "KINGPINxOG",
-      "name": "Unknown"
-    },
     "6346588132": {
       "balance": 0,
-      "username": "NgLYNX",
       "name": "NgLYNX"
     }
   },
   "stock": {
-    "indo": [],
     "fresh": [],
     "old": []
   },
-  "passwords": {
-    "indo": "123",
-    "fresh": "999",
-    "old": "321"
-  },
+  "passwords": {},
   "balance": {},
-  "prices": {
-    "indo": 10,
-    "fresh": 10,
-    "old": 15
-  },
-  "upi": "Jsd@slc",
+  "prices": {},
   "purchaseHistory": {
-    "8099711057": [
-      {
-        "type": "fresh",
-        "qty": 1,
-        "allocated": ["abcd"],
-        "password": "999",
-        "total": 10
-      }
-    ],
     "6346588132": []
-  }
+  },
+  "upi": "Jsd@slc"
 }
